@@ -1,0 +1,17 @@
+{
+  "name": "sina",
+  "version": "v1.0.2 2020.05.10",
+  "versionTag": "beta2",
+  "log_level": "debug",
+  "jwt_secret": "15598870762",
+  "database_host": "r3inbowari.top:3306",
+  "database_username": "root",
+  "database_password": "159463",
+  "database_table": "meeting",
+  "iot_port": 10086,
+  "iot_version": {
+    "a": 16,
+    "b": 0,
+    "c": 71
+  }
+}
