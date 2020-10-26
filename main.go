@@ -6,7 +6,9 @@ import (
 	"github.com/eclipse/paho.mqtt.golang"
 	"github.com/gorilla/mux"
 	mgo "gopkg.in/mgo.v2"
+	"io"
 	"net/http"
+	"os"
 )
 
 type Version struct {
@@ -54,6 +56,7 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/check_update", HandleVersion)
 	r.HandleFunc("/bme/{id}", HandleBME)
+	r.HandleFunc("/upload/a", FileUpload)
 	log.Fatal(http.ListenAndServe(":2999", r))
 }
 
@@ -74,8 +77,33 @@ type Data struct {
 	Measure []float64 `json:"measure"`
 }
 
+func FileUpload(w http.ResponseWriter, r *http.Request) {
+	uploadFile, handle, err := r.FormFile("file")
+	if handle == nil {
+		FailedResult(w, "error handle", 1, http.StatusBadRequest, 899)
+		return
+	}
+	err = os.Mkdir("./files/", 0777)
+	saveFile, err := os.OpenFile("./files/"+"12213312", os.O_WRONLY|os.O_CREATE, 0666)
+	if err != nil {
+		FailedResult(w, "file operation failed", 1, http.StatusInternalServerError, 500)
+		return
+	}
+	_, _ = io.Copy(saveFile, uploadFile)
+	defer uploadFile.Close()
+	defer saveFile.Close()
+	a := GetConfig()
+	a.IotVersion = &IV{
+		A: 1,
+		B: 2,
+		C: 3,
+	}
+	_ = a.SetConfig()
+	SucceedResult(w, "upload succeed", 1, http.StatusOK, 0)
+}
+
 func bmeCallback(client mqtt.Client, msg mqtt.Message) {
-fmt.Println(msg.Topic())
+	fmt.Println(msg.Topic())
 }
 
 func apdsCallback(client mqtt.Client, msg mqtt.Message) {

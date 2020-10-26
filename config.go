@@ -1,6 +1,11 @@
 package main
 
-import "time"
+import (
+	"encoding/json"
+	"github.com/sirupsen/logrus"
+	"os"
+	"time"
+)
 
 /**
  * local config struct
@@ -38,6 +43,27 @@ func GetConfig() *LocalConfig {
 		config.CacheDeadline = time.Now().Add(time.Second * 60)
 	}
 	return config
+}
+
+/**
+ * save cnf/conf.json
+ */
+func (lc *LocalConfig) SetConfig() error {
+	fp, err := os.Create("cnf/conf.json")
+	if err != nil {
+		Fatal("loading file failed", logrus.Fields{"err": err})
+	}
+	defer fp.Close()
+	data, err := json.Marshal(lc)
+	if err != nil {
+		Fatal("marshal file failed", logrus.Fields{"err": err})
+	}
+	n, err := fp.Write(data)
+	if err != nil {
+		Fatal("write file failed", logrus.Fields{"err": err})
+	}
+	Info("already update config file", logrus.Fields{"size": n})
+	return nil
 }
 
 func (lc *LocalConfig) GetDatabaseUsername() string {
