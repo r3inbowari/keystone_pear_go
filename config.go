@@ -49,7 +49,7 @@ func GetConfig() *LocalConfig {
  * save cnf/conf.json
  */
 func (lc *LocalConfig) SetConfig() error {
-	fp, err := os.Create("cnf/conf.json")
+	fp, err := os.Create("conf.json")
 	if err != nil {
 		Fatal("loading file failed", logrus.Fields{"err": err})
 	}
