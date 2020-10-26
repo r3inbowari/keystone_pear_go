@@ -6,7 +6,6 @@ import (
 	"github.com/eclipse/paho.mqtt.golang"
 	"github.com/gorilla/mux"
 	mgo "gopkg.in/mgo.v2"
-	"golang.org/x/net/context"
 	"net/http"
 )
 
@@ -76,34 +75,15 @@ type Data struct {
 }
 
 func bmeCallback(client mqtt.Client, msg mqtt.Message) {
-
-	var result MessageBody
-	_ = json.Unmarshal(msg.Payload(), &result)
-	insertResult, err := db.InsertOne(context.TODO(), result)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("[INFO] Topic ->", msg.Topic(), "Inserted BME Data ->", insertResult.InsertedID)
+fmt.Println(msg.Topic())
 }
 
 func apdsCallback(client mqtt.Client, msg mqtt.Message) {
-	var result MessageBody
-	_ = json.Unmarshal(msg.Payload(), &result)
-	insertResult, err := apdsConn.InsertOne(context.TODO(), result)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("[INFO] Topic ->", msg.Topic(), "Inserted APDS Data ->", insertResult.InsertedID)
+	fmt.Println(msg.Topic())
 }
 
 func lopgonCallback(client mqtt.Client, msg mqtt.Message) {
-	var result MessageBody
-	_ = json.Unmarshal(msg.Payload(), &result)
-	insertResult, err := logonConn.InsertOne(context.TODO(), result)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("[INFO] Topic ->", msg.Topic(), "Inserted Logon Data ->", insertResult.InsertedID, "ID ->", result.ID)
+	fmt.Println(msg.Topic())
 }
 
 func updateCallback(client mqtt.Client, msg mqtt.Message) {
@@ -123,29 +103,7 @@ func updateCallback(client mqtt.Client, msg mqtt.Message) {
 }
 
 func HandleBME(w http.ResponseWriter, r *http.Request) {
-	var result MessageBody
-	vars := mux.Vars(r)
 
-	println(vars["id"])
-
-	pipeline := []bson.M{
-		{
-			"$group": bson.M{
-				"_id": "",
-				"max": bson.M{"$max": "$price"},
-			},
-		},
-	}
-	result := []bson.M{}
-	err = db.C("product").Pipe(pipeline).All(&result)
-
-
-	if err != nil {
-		_, _ = w.Write([]byte("{\"code\":233,\"msg\":\"not found data\"}"))
-	}
-	fmt.Printf("[INFO] Get BME value: %+v\n", result)
-	ret, _ := json.Marshal(result)
-	_, _ = w.Write(ret)
 }
 
 func HandleAPDS(w http.ResponseWriter, r *http.Request) {
