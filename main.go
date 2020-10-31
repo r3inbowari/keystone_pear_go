@@ -191,12 +191,16 @@ func bmeCallback(client mqtt.Client, msg mqtt.Message) {
 	var result MessageBody
 	_ = json.Unmarshal(msg.Payload(), &result)
 	_ = result.Save("bme")
-	hash_tem[result.DeviceID] = result.Data.Measure[0]
-	hash_hum[result.DeviceID] = result.Data.Measure[1]
-	hash_pre[result.DeviceID] = result.Data.Measure[2]
-	hash_alt[result.DeviceID] = result.Data.Measure[3]
-	bme_ts[result.DeviceID] = result.Ts
-	fmt.Println("[INFO] Topic ->", msg.Topic(), "Inserted BME Data ->", result.ID)
+	if len(result.Data.Measure) == 4 {
+		hash_tem[result.DeviceID] = result.Data.Measure[0]
+		hash_hum[result.DeviceID] = result.Data.Measure[1]
+		hash_pre[result.DeviceID] = result.Data.Measure[2]
+		hash_alt[result.DeviceID] = result.Data.Measure[3]
+		bme_ts[result.DeviceID] = result.Ts
+		fmt.Println("[INFO] Topic ->", msg.Topic(), "Inserted BME Data ->", result.ID)
+	} else {
+		fmt.Println("[INFO] Topic ->", msg.Topic(), "Got a error format data, drop out.")
+	}
 }
 
 func (mb *MessageBody) Save(c string) error {
@@ -208,22 +212,30 @@ func apdsCallback(client mqtt.Client, msg mqtt.Message) {
 	var result MessageBody
 	_ = json.Unmarshal(msg.Payload(), &result)
 	_ = result.Save("apds")
-	hash_clear[result.DeviceID] = result.Data.Measure[0]
-	hash_red[result.DeviceID] = result.Data.Measure[1]
-	hash_green[result.DeviceID] = result.Data.Measure[2]
-	hash_blue[result.DeviceID] = result.Data.Measure[3]
-	apds_ts[result.DeviceID] = result.Ts
-	fmt.Println("[INFO] Topic ->", msg.Topic(), "Inserted APDS Data ->", result.ID)
+	if len(result.Data.Measure) == 4 {
+		hash_clear[result.DeviceID] = result.Data.Measure[0]
+		hash_red[result.DeviceID] = result.Data.Measure[1]
+		hash_green[result.DeviceID] = result.Data.Measure[2]
+		hash_blue[result.DeviceID] = result.Data.Measure[3]
+		apds_ts[result.DeviceID] = result.Ts
+		fmt.Println("[INFO] Topic ->", msg.Topic(), "Inserted APDS Data ->", result.ID)
+	} else {
+		fmt.Println("[INFO] Topic ->", msg.Topic(), "Got a error format data, drop out.")
+	}
 }
 
 func ccsCallback(client mqtt.Client, msg mqtt.Message) {
 	var result MessageBody
 	_ = json.Unmarshal(msg.Payload(), &result)
 	_ = result.Save("ccs")
-	hash_co2[result.DeviceID] = result.Data.Measure[0]
-	hash_tvoc[result.DeviceID] = result.Data.Measure[1]
-	ccs_ts[result.DeviceID] = result.Ts
-	fmt.Println("[INFO] Topic ->", msg.Topic(), "Inserted CCS Data ->", result.ID)
+	if len(result.Data.Measure) == 2 {
+		hash_co2[result.DeviceID] = result.Data.Measure[0]
+		hash_tvoc[result.DeviceID] = result.Data.Measure[1]
+		ccs_ts[result.DeviceID] = result.Ts
+		fmt.Println("[INFO] Topic ->", msg.Topic(), "Inserted CCS Data ->", result.ID)
+	} else {
+		fmt.Println("[INFO] Topic ->", msg.Topic(), "Got a error format data, drop out.")
+	}
 }
 
 type LoginBody struct {
