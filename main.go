@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/eclipse/paho.mqtt.golang"
 	"github.com/gorilla/mux"
+	"github.com/wuwenbao/gcors"
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	"io"
@@ -51,7 +52,16 @@ var hash_green = make(map[string]float64)
 var hash_blue = make(map[string]float64)
 var apds_ts = make(map[string]int)
 
+type Coupler struct {
+	Cp0 bool `json:"coupler0"`
+	Cp1 bool `json:"coupler1"`
+}
+
+var coupler_status = make(map[string]Coupler)
+
 var c mqtt.Client
+
+var topology = ""
 
 func main() {
 	http.Handle("/esp8266/", http.StripPrefix("/esp8266/", http.FileServer(http.Dir("files"))))
@@ -77,6 +87,8 @@ func main() {
 	}
 	if token := c.Subscribe("meshNetwork/from/rootNode/checkupdate", 0, updateCallback); token.Wait() && token.Error() != nil {
 	}
+	if token := c.Subscribe("meshNetwork/from/rootNode/topology", 0, topologyCallback); token.Wait() && token.Error() != nil {
+	}
 
 	r := mux.NewRouter()
 	r.HandleFunc("/check_update", HandleVersion)
@@ -87,8 +99,9 @@ func main() {
 	r.HandleFunc("/tw/bme/{id}", HandleBME12)
 	r.HandleFunc("/tw/ccs/{id}", HandleCCS12)
 	r.HandleFunc("/online", HandleLoginList)
-
+	r.HandleFunc("/topology/{id}", HandleTopology)
 	r.HandleFunc("/coupler/{id}", HandleCoupler)
+	r.HandleFunc("/coupler/status/{id}", HandleCouplerStatus)
 	r.HandleFunc("/info/update", HandleGetVersion)
 
 	r.HandleFunc("/update/{id}", HandleCheckUpdate)
@@ -96,10 +109,32 @@ func main() {
 	r.HandleFunc("/upload/{typename}", FileUpload)
 	// r.HandleFunc("/esp8266/{filename}", FileDownload)
 	r.Handle("/esp8266/", http.FileServer(http.Dir("./files")))
-	log.Fatal(http.ListenAndServe(":2999", r))
+
+	// 跨域请求
+	// r.Use(mux.CORSMethodMiddleware(r))
+	cors := gcors.New(
+		r,
+		gcors.WithOrigin("*"),
+		gcors.WithMethods("POST, GET, PUT, DELETE, OPTIONS"),
+		gcors.WithHeaders("Authorization"),
+	)
+
+	log.Fatal(http.ListenAndServe(":2999", cors))
 
 	time.Sleep(time.Hour)
 
+}
+
+func corsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("content-type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")              //允许访问所有域
+	w.Header().Set("Access-Control-Allow-Headers", "Authorization") //header的类型
+	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS")
+	w.Header().Set("Access-Control-Max-Age", "600")
+	if r.Method == http.MethodOptions {
+		return
+	}
+	w.Write([]byte("Cors Request"))
 }
 
 type Result struct {
@@ -114,6 +149,7 @@ type MessageBody struct {
 	Operation int           `json:"operation"`
 	Data      Data          `json:"data"`
 	Member    int           `json:"member"`
+	Msg       Coupler       `json:"msg"`
 }
 
 type Data struct {
@@ -268,6 +304,12 @@ func logonCallback(client mqtt.Client, msg mqtt.Message) {
 	fmt.Println("[INFO] Topic ->", msg.Topic(), "Inserted BME Data ->", result.ID)
 }
 
+func topologyCallback(client mqtt.Client, msg mqtt.Message) {
+	fmt.Printf("TOPIC: %s\n", msg.Topic())
+	fmt.Printf("MSG: %s\n", msg.Payload())
+	topology = string(msg.Payload())
+}
+
 func updateCallback(client mqtt.Client, msg mqtt.Message) {
 	fmt.Printf("TOPIC: %s\n", msg.Topic())
 	fmt.Printf("MSG: %s\n", msg.Payload())
@@ -289,6 +331,16 @@ type SensorBody struct {
 	ID   string    `json:"id"`
 	TS   int       `json:"ts"`
 	Data []float64 `json:"data"`
+}
+
+func HandleTopology(w http.ResponseWriter, r *http.Request) {
+	v := mux.Vars(r)
+	id := v["id"]
+	if id == "" {
+		id = "null"
+		return
+	}
+	_, _ = w.Write([]byte(topology))
 }
 
 func HandleBME(w http.ResponseWriter, r *http.Request) {
@@ -317,6 +369,20 @@ func HandleCCS(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(ret)
 }
 
+func HandleCouplerStatus(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	_ = r.ParseForm()
+	ID := vars["id"]
+	cr, _ := coupler_status[ID]
+	SucceedResult(w, cr, 1, http.StatusOK, 0)
+	//if ok {
+	//	SucceedResult(w, cr, 1, http.StatusOK, 0)
+	//} else {
+	//	SucceedResult(w, "null", 1, http.StatusOK, 0)
+	//}
+
+}
+
 func HandleCoupler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	_ = r.ParseForm()
@@ -339,6 +405,35 @@ func HandleCoupler(w http.ResponseWriter, r *http.Request) {
 	println(string(ret))
 	token := c.Publish("meshNetwork/to/rootNode/coupler", 1, false, ret)
 	token.WaitTimeout(time.Second)
+
+	var cr = coupler_status[ID]
+
+	if member == 0 {
+		if action == 5 {
+			coupler_status[ID] = Coupler{
+				Cp0: false,
+				Cp1: cr.Cp1,
+			}
+		} else if action == 6 {
+			coupler_status[ID] = Coupler{
+				Cp0: true,
+				Cp1: cr.Cp1,
+			}
+		}
+	} else if member == 1 {
+		if action == 5 {
+			coupler_status[ID] = Coupler{
+				Cp0: cr.Cp0,
+				Cp1: false,
+			}
+		} else if action == 6 {
+			coupler_status[ID] = Coupler{
+				Cp0: cr.Cp0,
+				Cp1: true,
+			}
+		}
+	}
+
 	SucceedResult(w, "oper succeed", 1, http.StatusOK, 0)
 }
 
