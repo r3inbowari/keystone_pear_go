@@ -106,6 +106,8 @@ func main() {
 
 	r.HandleFunc("/update/{id}", HandleCheckUpdate)
 
+	r.HandleFunc("/android/enable", HandleAndroidEnable)
+
 	r.HandleFunc("/upload/{typename}", FileUpload)
 	// r.HandleFunc("/esp8266/{filename}", FileDownload)
 	r.Handle("/esp8266/", http.FileServer(http.Dir("./files")))
@@ -123,6 +125,24 @@ func main() {
 
 	time.Sleep(time.Hour)
 
+}
+
+var isEnableAndroidClient = false
+
+func HandleAndroidEnable(w http.ResponseWriter, r *http.Request) {
+	_ = r.ParseForm()
+	if r.Form.Get("enable") == "0" {
+		isEnableAndroidClient = false
+		SucceedResult(w, "disable android client", 1, http.StatusOK, 0)
+		return
+	} else if r.Form.Get("enable") == "1" {
+		isEnableAndroidClient = true
+		SucceedResult(w, "enable android client", 1, http.StatusOK, 0)
+		return
+	} else if r.Form.Get("enable") == "2" {
+		SucceedResult(w, isEnableAndroidClient, 1, http.StatusOK, 0)
+		return
+	}
 }
 
 func corsHandler(w http.ResponseWriter, r *http.Request) {

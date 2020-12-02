@@ -3,8 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="48be1ed7-564e-4c27-bb0d-9d12636599dd" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pear_go" beforeDir="false" afterPath="$PROJECT_DIR$/pear_go" afterDir="false" />
     </list>
@@ -38,7 +36,7 @@
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="go.import.settings.migrated" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../qqleak_repo/qqleak_web" />
   </component>
   <component name="RunManager">
     <configuration name="go build pear_go" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
@@ -56,9 +54,9 @@
       </list>
     </recent_temporary>
   </component>
-  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="SpellCheckerSettings" BundledDictionaries="0" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" Dictionaries="0" CorrectionsLimit="5" DefaultDictionary="application-level" UseSingleDictionary="true" />
   <component name="TypeScriptGeneratedFilesManager">
-    <option name="version" value="3" />
+    <option name="version" value="2" />
   </component>
   <component name="VgoProject">
     <integration-enabled>true</integration-enabled>
@@ -76,6 +74,10 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="703" height="466" key="DebuggerActiveHint/0.0.1920.1040@0.0.1920.1040" timestamp="1605949911140" />
+    <state x="524" y="287" key="FileChooserDialogImpl" timestamp="1606560797630">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="524" y="287" key="FileChooserDialogImpl/0.0.1920.1040@0.0.1920.1040" timestamp="1606560797630" />
     <state width="1288" height="233" key="GridCell.Tab.0.bottom" timestamp="1605952643407">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -131,7 +133,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/main.go</url>
-          <line>376</line>
+          <line>396</line>
           <option name="timeStamp" value="17" />
         </line-breakpoint>
       </breakpoints>
